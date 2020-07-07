@@ -1,5 +1,5 @@
 lib
 dist
+bin
+data
 node_modules
-bin/*
-data/*
