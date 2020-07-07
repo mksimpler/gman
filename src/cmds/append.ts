@@ -75,7 +75,7 @@ async function process (drive: Drive, setting: AppSettings$Basic) : Promise<void
     // Move entries
     for (const entry of movEntries) {
         const origin = entry["origin"];
-        const append = entry["origin"];
+        const append = entry["append"];
 
         const items = await drive.list({
             parentId: append.id,
