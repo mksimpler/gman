@@ -18,9 +18,10 @@ export default async function execute (params: string[]) : Promise<void> {
     });
 
     const argv = minimist(params, {
-        "string": ["profile", "p"],
+        "string": ["profile", "p", "threshold", "t"],
         "alias": {
-            "profile": "p"
+            "profile": "p",
+            "threshold": "t"
         }
     });
 
@@ -28,7 +29,7 @@ export default async function execute (params: string[]) : Promise<void> {
     const cleanSettings = readCleanSettings();
 
     const task = getTask(profile, cleanSettings);
-    const threshold = task["threshold"] || 4;
+    const threshold = argv["threshold"] || (task["threshold"] || 5);
 
     await process(drive, task, threshold);
 }
@@ -103,7 +104,7 @@ async function process (drive: Drive, task: AppSettings$CleanProfile, threshold:
     const nOldGroupFiles = oldGroups.map(g => g.entries.length).reduce((len, total) => len + total, 0);
 
     const newGroups = Object.keys(newGroupsDict).map(k => newGroupsDict[k])
-                        .filter(g => g.entries.length > threshold).sort((a, b) => b.entries.length - a.entries.length);
+                        .filter(g => g.entries.length >= threshold).sort((a, b) => b.entries.length - a.entries.length);
     const nNewGroupFiles = newGroups.map(g => g.entries.length).reduce((len, total) => len + total, 0);
 
     if (nOldGroupFiles > 0) {
