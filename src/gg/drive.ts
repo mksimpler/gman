@@ -91,7 +91,7 @@ export class Drive {
         name: string
     }): Promise<Drive$File[]> {
         const parameters = this.prepareParams(options);
-        parameters.q += ` and name = ${options.name}`;
+        parameters.q += ` and name = '${options.name}'`;
 
         const files: Drive$File[] = [];
 
