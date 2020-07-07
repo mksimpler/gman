@@ -6,10 +6,12 @@ import logger from "./logger";
 
 export { nconf as config };
 
+const DFCFGLOC = "/etc/gman";
+
 export async function initConfig () : Promise<void> {
-    const CFGLOC = "./data/config.json";
+    const CFGLOC = path.join(DFCFGLOC, "config.json");
     const defaults = {
-        "dataDir": "./data",
+        "dataDir": DFCFGLOC,
 
         "settings": "settings.json",
 
