@@ -1,10 +1,33 @@
+import minimist from "minimist";
+
 import logger from "../logger";
 import { inArray, driveEntryParser, promptAsk } from "../utils";
 import { Drive } from "../gg/drive";
 import { OAuth2, loadCredentials } from "../gg/auth";
-import { config, readImportSettings, readGroupsSettings } from "../dataio";
+import { config, readImportSettings, readGroupsSettings, writeSettings } from "../dataio";
 
-export default async function execute () : Promise<void> {
+import type { ParsedArgs } from 'minimist';
+
+export default async function execute (params: string[]) : Promise<void> {
+    const argv = minimist(params, {
+        "boolean": ["edit-group", "e", "group", "v"],
+        "string": ["name", "n", "id", "i", "tags", "t", "no-allow", "d"],
+        "alias": {
+            "edit-group": "e",
+            "group": "v",
+            "name": "n",
+            "id": "i",
+            "tags": "t",
+            "no-allow": "d"
+        }
+    });
+
+    if (argv["group"]) {
+        return viewGroup(argv);
+    } else if (argv["edit-group"]) {
+        return await editGroup(argv);
+    }
+
     const credentials = loadCredentials(config.get("google:credentials"));
     const { client_id, client_secret, redirect_uris } = credentials.installed;
 
@@ -98,6 +121,75 @@ async function process (drive: Drive, setting: AppSettings$Basic, groups: AppSet
             }
         }
     }
+}
+
+function viewGroup (argv: ParsedArgs) {
+    const nameGroup: Nullable<string> = argv["name"];
+    const settings = readGroupsSettings();
+    let groupSetting: Nullable<AppSettings$Group> = settings.filter(g => g.name === nameGroup)[0] || undefined;
+
+    if (groupSetting) {
+        console.log(groupSetting);
+
+    } else {
+        console.log(`Group with name '${nameGroup}' is not exists`);
+    }
+}
+
+async function editGroup (args: ParsedArgs) {
+    const STR_ASKNAMEGROUP = "Name's group: ";
+    const STR_ERRNAMEGROUP = "Name's group is not valid";
+    const STR_ASKID = "Id: ";
+    const STR_ERRID = "Id value is not valid";
+    const STR_ASKTAGS = "Tags (please uses colon(,) or semi-colon(;) to seperate: ";
+    const STR_ASKNOALLOW = "Noallow tags (please uses colon(,) or semi-colon(;) to seperate: ";
+    const STR_SUCCESS = "Edit group successful";
+
+    const nameGroup = (await promptAsk(STR_ASKNAMEGROUP)).trim();
+
+    if (nameGroup) {
+
+        const id = (await promptAsk(STR_ASKID)).trim();
+
+        if (id) {
+            let tags: string[] = [];
+            let noallow: Nullable<string[]> = undefined;
+
+            let sArrayValue = (await promptAsk(STR_ASKTAGS)).trim();
+            if (sArrayValue) tags = sArrayValue.split(/[,;]/);
+
+            sArrayValue = (await promptAsk(STR_ASKNOALLOW)).trim();
+            if (sArrayValue) noallow = sArrayValue.split(/[,;]/);
+
+            const settings = readGroupsSettings();
+            let groupSetting: Nullable<AppSettings$Group> = settings.filter(g => g.name === nameGroup)[0] || undefined;
+
+            if (groupSetting) {
+
+                groupSetting.id = id;
+                groupSetting.tags = tags;
+                groupSetting.noallow = noallow;
+
+            } else {
+                groupSetting = {
+                    name: nameGroup,
+                    id: id,
+                    tags: tags,
+                    noallow: noallow
+                }
+
+                settings.push(groupSetting);
+            }
+
+            writeSettings();
+            console.log(`${STR_SUCCESS}.`);
+            return;
+        }
+
+        console.log(`${STR_ERRID}.`);
+    }
+
+    console.log(`${STR_ERRNAMEGROUP}.`);
 }
 
 function driveEntryCategorySelector (entry: DriveEntry, groups: AppSettings$Group[]) : DriveEntry {

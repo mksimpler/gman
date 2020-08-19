@@ -137,6 +137,16 @@ function readSettings () : JsonType {
     }
 }
 
+export function writeSettings () {
+    try {
+        if (settings) {
+            writeFile(nconf.get("settings"), JSON.stringify(settings, null, 4));
+        }
+    } catch (error) {
+        logger.error(`${error}`);
+    }
+}
+
 export function readImportSettings () : AppSettings$Basic {
     return readSettings()["import"] as AppSettings$Basic;
 }

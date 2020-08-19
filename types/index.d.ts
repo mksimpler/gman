@@ -1,3 +1,4 @@
+declare type Nullable<T> = T | undefined;
 declare type JsonType = { [id: string]: unknown };
 
 declare interface DriveConfig {
