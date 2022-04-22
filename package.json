@@ -39,7 +39,7 @@
   "dependencies": {
     "googleapis": "^52.1.0",
     "minimist": "^1.2.5",
-    "nconf": "^0.10.0",
+    "nconf": "^0.11.4",
     "winston": "^3.3.3"
   }
 }
